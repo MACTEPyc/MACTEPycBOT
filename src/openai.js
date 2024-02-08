@@ -1,47 +1,48 @@
-import { Configuration, OpenAIApi } from 'openai'
+import OpenAI from 'openai';
 // import config from 'config'
-import { createReadStream } from 'fs'
+import { createReadStream } from 'fs';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-class OpenAI {
+class OpenAIforBot {
   roles = {
     ASSISTANT: 'assistant',
-    USER: 'user', 
+    USER: 'user',
     SYSTEM: 'system',
-  }
+  };
 
   constructor(apiKey) {
-    const configuration = new Configuration({
+    this.openai = new OpenAI({
       apiKey,
+      baseURL: 'https://api.proxyapi.ru/openai/v1',
     });
-    this.openai = new OpenAIApi(configuration);
   }
 
-  async chat(messages) {
+  async chat_(messages) {
     try {
-      const response = await this.openai.createChatCompletion({
+      const response = await this.openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages,
-      })
-      return response.data.choices[0].message
-    } catch(e) {
-      console.log('Error while gpt chat', e.message)
+      });
+      return response.choices[0].message;
+    } catch (e) {
+      console.log('Error while gpt chat', e.message);
     }
   }
 
-  async transcription(filepath) {
+  async transcription_(filepath) {
     try {
-      const response = await this.openai.createTranscription(
-        createReadStream(filepath),
-        'whisper-1'
-        )
-      return response.data.text
-    }  catch(e) {
-      console.log('Error while transcription', e.message)
+      const response = await this.openai.audio.transcriptions.create({
+        model: 'whisper-1',
+        file: createReadStream(filepath),
+      });
+      // console.log(response);
+      return response.text;
+    } catch (e) {
+      console.log('Error while transcription', e.message);
     }
   }
 }
 
-export const openai = new OpenAI(process.env.OPENAI_KEY)
+export const openai_ = new OpenAIforBot(process.env.OPENAI_KEY);
